@@ -5,6 +5,7 @@ void Display::setup() {
     pinMode(PinClock, OUTPUT);
     pinMode(PinCS, OUTPUT);
     digitalWrite(PinCS,HIGH);
+    digitalWrite(PinClock, LOW);
 
     // Disable Display-Test
     spiTransfer(REG_DISPLAY_TEST, 0);
@@ -20,10 +21,19 @@ void Display::setup() {
     spiTransfer(REG_SHUTDOWN, 0);
 }
 
+void Display::shiftOut(volatile byte data) {
+    for (uint8_t i = 0; i < 8; i++)  {    
+        digitalWrite(PinData, (data & 0x80) != 0);
+        data <<= 1;
+        digitalWrite(PinClock, HIGH);
+        digitalWrite(PinClock, LOW);
+    }
+}
+
 void Display::spiTransfer(volatile byte reg, volatile byte data) {
     digitalWrite(PinCS, LOW);
-    shiftOut(PinData, PinClock, MSBFIRST, reg);
-    shiftOut(PinData, PinClock, MSBFIRST, data);
+    shiftOut(reg);
+    shiftOut(data);
     digitalWrite(PinCS, HIGH);
 }
 
@@ -32,7 +42,7 @@ void Display::configure(bool enabled, uint8_t intensity) {
     spiTransfer(REG_SHUTDOWN, enabled ? 1 : 0);
 }
 
-bool Display::setText(String value) {
+bool Display::setText(std::string value) {
     byte buffer[8] = {0,0,0,0,0,0,0,0};
 
     int idx = 0;

@@ -1,13 +1,11 @@
 #pragma once
 
-#include <climits>
-
 #include "Optional.h"
 
 class Operator {
    public:
     virtual char symbol() const = 0;
-    virtual int precedence() const = 0;
+    virtual uint8_t precedence() const = 0;
     virtual Optional<int32_t> calculate(int32_t a, int32_t b) const = 0;
     virtual bool startEvaluating() const { return false; }
     virtual ~Operator() = default;  // Important: Virtual Destructor!
@@ -17,7 +15,7 @@ class Operator {
     class NAME : public Operator {                                         \
        public:                                                             \
         char symbol() const override { return SYMBOL; }                    \
-        int precedence() const override { return PRECEDENCE; }             \
+        uint8_t precedence() const override { return PRECEDENCE; }             \
         Optional<int32_t> calculate(int32_t a, int32_t b) const override { \
             return Optional<int32_t>(OPERATION);                           \
         }                                                                  \
@@ -35,7 +33,7 @@ DEFINE_OPERATOR(OrOperator, '|', 13, a | b)
 class DivOperator : public Operator {
    public:
     char symbol() const override { return '/'; }
-    int precedence() const override { return 5; }
+    uint8_t precedence() const override { return 5; }
     Optional<int32_t> calculate(int32_t a, int32_t b) const override {
         if (b == 0) return Optional<int32_t>();
         return Optional<int32_t>(a / b);
@@ -45,7 +43,7 @@ class DivOperator : public Operator {
 class ModOperator : public Operator {
    public:
     char symbol() const override { return '%'; }
-    int precedence() const override { return 5; }
+    uint8_t precedence() const override { return 5; }
     Optional<int32_t> calculate(int32_t a, int32_t b) const override {
         if (b == 0) return Optional<int32_t>();
         return Optional<int32_t>(a % b);
@@ -55,7 +53,7 @@ class ModOperator : public Operator {
 class Solve : public Operator {
    public:
     char symbol() const override { return '\r'; }
-    int precedence() const override { return INT_MAX; }
+    uint8_t precedence() const override { return UINT8_MAX; }
     Optional<int32_t> calculate(int32_t a, int32_t b) const override {
         return Optional<int32_t>();
     }

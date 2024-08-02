@@ -1,6 +1,5 @@
-
 #include <Arduino.h>
-
+#include <string>
 
  /*   0
     5   1
@@ -56,6 +55,7 @@ class Display {
         const byte REG_SHUTDOWN = 0x0C;
         const byte REG_DISPLAY_TEST = 0x0F;
 
+        void shiftOut(volatile byte data);
         void spiTransfer(volatile byte reg, volatile byte data);
     public:
         Display(int data, int clock, int cs) {
@@ -68,5 +68,5 @@ class Display {
         // enabled -> enable or disable the display
         // intensity -> value between 0 and 15 to set the brightness.
         void configure(bool enabled, uint8_t intensity);
-        bool setText(String value);
+        bool setText(std::string value);
 };

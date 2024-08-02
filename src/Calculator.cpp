@@ -1,19 +1,16 @@
 #include "Calculator.h"
 
-#include <algorithm>
-#include <optional>
 #include <sstream>
-
 #include "Operator.h"
 
 // Initialize static const member
-const std::vector<std::shared_ptr<Operator>> Calculator::_operators = {
-    std::make_shared<MulOperator>(), std::make_shared<DivOperator>(),
-    std::make_shared<ModOperator>(), std::make_shared<AddOperator>(),
-    std::make_shared<SubOperator>(), std::make_shared<ShlOperator>(),
-    std::make_shared<ShrOperator>(), std::make_shared<AndOperator>(),
-    std::make_shared<XorOperator>(), std::make_shared<OrOperator>(),
-    std::make_shared<Solve>()};
+const std::vector<Operator*> Calculator::_operators = {
+    new MulOperator(), new DivOperator(),
+    new ModOperator(), new AddOperator(),
+    new SubOperator(), new ShlOperator(),
+    new ShrOperator(), new AndOperator(),
+    new XorOperator(), new OrOperator(),
+    new Solve()};
 
 void Calculator::addDigit(int n) {
     if (n >= static_cast<int>(_mode))
@@ -136,7 +133,8 @@ void Calculator::solve() {
                              [](const Operation a, const Operation b) {
                                  return a.op.precedence() < b.op.precedence();
                              });
-        auto argB = std::next(argA);
+        auto argB = argA;
+        ++argB;
         auto result = argA->op.calculate(argA->value, argB->value);
         if (result.has_value()) {
             argB->value = result.value();

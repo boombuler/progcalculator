@@ -1,11 +1,7 @@
 #pragma once
 
 #include <inttypes.h>
-
 #include <list>
-#include <memory>
-#include <string>
-#include <vector>
 
 #include "Operator.h"
 
@@ -27,7 +23,7 @@ class Calculator {
         Operator& op;
     };
 
-    static const std::vector<std::shared_ptr<Operator>> _operators;
+    static const std::vector<Operator*> _operators;
     std::list<Operation> _pending;
     int32_t _operant = 0;
     bool _newNumber = true;
@@ -42,9 +38,13 @@ class Calculator {
 
    public:
     string display = "0";
-    inline void setMode(Mode m) {
-        _mode = m;
-        displayNumber();
+    inline bool setMode(Mode m) {
+        if (_mode != m) {
+            _mode = m;
+            displayNumber();
+            return true;
+        }
+        return false;
     }
     void input(char c);
 };
