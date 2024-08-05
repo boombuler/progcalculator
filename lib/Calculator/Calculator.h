@@ -2,6 +2,7 @@
 
 #include <inttypes.h>
 #include <list>
+#include <vector>
 
 #include "Operator.h"
 
@@ -46,5 +47,6 @@ class Calculator {
         }
         return false;
     }
+    inline Mode mode() { return _mode; }
     void input(char c);
 };

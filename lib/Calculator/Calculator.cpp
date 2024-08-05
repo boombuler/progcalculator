@@ -1,5 +1,5 @@
 #include "Calculator.h"
-
+#include <algorithm>
 #include <sstream>
 #include "Operator.h"
 
@@ -97,7 +97,7 @@ void Calculator::error() {
     _pending.clear();
     _operant = 0;
     _newNumber = true;
-    display = "Err0r";
+    display = "Error";
 }
 
 void Calculator::input(char c) {
