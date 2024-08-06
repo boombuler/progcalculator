@@ -7,7 +7,7 @@ class Optional {
     bool _is_present;
 
    public:
-    Optional() : _is_present(false) {}
+    Optional() : _value(T()), _is_present(false) {}
 
     Optional(T value) : _value(value), _is_present(true) {}
 

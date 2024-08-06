@@ -1,15 +1,17 @@
 #include "Calculator.h"
 #include <algorithm>
 #include <sstream>
+#include <vector>
 #include "Operator.h"
 
 // Initialize static const member
-const std::vector<Operator*> Calculator::_operators = {
+const std::vector<Operator *> Calculator::_knownOperators = {
     new MulOperator(), new DivOperator(),
     new ModOperator(), new AddOperator(),
     new SubOperator(), new ShlOperator(),
     new ShrOperator(), new AndOperator(),
-    new XorOperator(), new OrOperator(),
+    new XorOperator(),      new OrOperator(),
+    new StartParentheses(), new EndParentheses(),
     new Solve()};
 
 void Calculator::addDigit(int n) {
@@ -17,44 +19,44 @@ void Calculator::addDigit(int n) {
         return;  // Ensure the base is contain the value...
 
     if (_newNumber) {
-        _operant = n;
+        _pending = n;
         _newNumber = false;
     } else {
         switch (_mode) {
             case Mode::Bin:
-                _operant <<= 1;
+                _pending <<= 1;
                 break;
             case Mode::Oct:
-                _operant <<= 3;
+                _pending <<= 3;
                 break;
             case Mode::Hex:
-                _operant <<= 4;
+                _pending <<= 4;
                 break;
             default:
-                _operant *= 10;
+                _pending *= 10;
                 break;
         }
-        _operant += n;
+        _pending += n;
     }
     displayNumber();
 }
 
 void Calculator::removeDigit() {
     if (_newNumber)
-        _operant = 0;
+        _pending = 0;
     else {
         switch (_mode) {
             case Mode::Bin:
-                _operant >>= 1;
+                _pending >>= 1;
                 break;
             case Mode::Oct:
-                _operant >>= 3;
+                _pending >>= 3;
                 break;
             case Mode::Hex:
-                _operant >>= 4;
+                _pending >>= 4;
                 break;
             default:
-                _operant /= 10;
+                _pending /= 10;
                 break;
         }
     }
@@ -77,16 +79,16 @@ void Calculator::displayNumber() {
     std::stringstream ss;
     switch (_mode) {
         case Mode::Bin:
-            ss << toBinary(_operant);
+            ss << toBinary(_pending);
             break;
         case Mode::Oct:
-            ss << std::oct << _operant;
+            ss << std::oct << _pending;
             break;
         case Mode::Hex:
-            ss << std::hex << _operant;
+            ss << std::hex << _pending;
             break;
         default:
-            ss << std::dec << _operant;
+            ss << std::dec << _pending;
             break;
     }
 
@@ -94,8 +96,9 @@ void Calculator::displayNumber() {
 }
 
 void Calculator::error() {
-    _pending.clear();
-    _operant = 0;
+    _operands.clear();
+    _operators.clear();
+    _pending = 0;
     _newNumber = true;
     display = "Error";
 }
@@ -108,42 +111,69 @@ void Calculator::input(char c) {
     else if (c == '\b')
         removeDigit();
     else {
-        for (const auto &op : _operators) {
+        for (const auto &op : _knownOperators) {
             if (op->symbol() == c) {
-                push(*op);
+                push(op);
                 break;
             }
         }
     }
 }
 
-void Calculator::push(Operator &op) {
-    _pending.push_back({_operant, op});
-    _newNumber = true;
-    if (op.startEvaluating()) {
-        solve();
-        displayNumber();
+bool Calculator::apply(Operator* op) {
+    int8_t size = op->operands();
+    
+    std::vector<int32_t> args(size, _pending);
+    int8_t max = size < _operands.size() ? size : _operands.size();
+    for (int i = max - 1; i >= 0; i--) {
+        args[i] = _operands.back();
+        _operands.pop_back();
     }
+    auto result = op->calculate(args);
+    if (result.has_value()) {
+        _operands.push_back(result.value());
+    } else {
+        return false;
+    }
+    return true;
 }
 
-void Calculator::solve() {
-    while (_pending.size() > 1) {
-        auto argA =
-            std::min_element(_pending.begin(), _pending.end(),
-                             [](const Operation a, const Operation b) {
-                                 return a.op.precedence() < b.op.precedence();
-                             });
-        auto argB = argA;
-        ++argB;
-        auto result = argA->op.calculate(argA->value, argB->value);
-        if (result.has_value()) {
-            argB->value = result.value();
-            _pending.erase(argA);
-        } else {
-            error();
-            return;
+void Calculator::push(Operator* op) {
+    if (op->followsNumber()) {
+        _operands.push_back(_pending);
+    }
+    _newNumber = true;
+
+    while (_operators.size() > 0) {
+        Operator *head = _operators.back();
+        switch (op->reduce(head))
+        { 
+        case Operator::ReduceMode::Eval:
+            if (!apply(head)) {
+                error();
+                return;
+            }
+            _operators.pop_back();
+            break;
+        case Operator::ReduceMode::DropAndStop:
+            _operators.pop_back();
+        case Operator::ReduceMode::Stop:
+            goto evalEnded;
         }
     }
-    _operant = _pending.begin()->value;
-    _pending.clear();
+
+evalEnded:
+    if (op->precedence() < UINT8_MAX) {
+        _operators.push_back(op);
+    } else if (_operators.size() == 0) {
+        if (_operands.size() == 0) {
+            error();
+        } else {
+            _pending = _operands.back();
+            _operands.clear();
+            _operators.clear();
+
+            displayNumber();
+        }
+    }   
 }

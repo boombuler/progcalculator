@@ -3,6 +3,7 @@
 #include <inttypes.h>
 #include <list>
 #include <vector>
+#include <deque>
 
 #include "Operator.h"
 
@@ -18,15 +19,10 @@ class Calculator {
     };
 
    private:
-    class Operation {
-       public:
-        int32_t value;
-        Operator& op;
-    };
-
-    static const std::vector<Operator*> _operators;
-    std::list<Operation> _pending;
-    int32_t _operant = 0;
+    static const std::vector<Operator*> _knownOperators;
+    deque<int32_t> _operands;
+    deque<Operator*> _operators;
+    int32_t _pending = 0;
     bool _newNumber = true;
 
     Mode _mode = Mode::Dec;
@@ -34,9 +30,8 @@ class Calculator {
     void removeDigit();
     void error();
     void displayNumber();
-    void push(Operator& op);
-    void solve();
-
+    void push(Operator* op);
+    bool apply(Operator* op);
    public:
     string display = "0";
     inline bool setMode(Mode m) {
@@ -47,6 +42,6 @@ class Calculator {
         }
         return false;
     }
-    inline Mode mode() { return _mode; }
+    inline Mode mode() const { return _mode; }
     void input(char c);
 };
