@@ -139,7 +139,7 @@ bool Calculator::apply(Operator* op) {
 }
 
 void Calculator::push(Operator* op) {
-    if (op->followsNumber()) {
+    if (!_newNumber || op->followsNumber()) {
         _operands.push_back(_pending);
     }
     _newNumber = true;
