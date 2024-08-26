@@ -121,10 +121,10 @@ void Calculator::input(char c) {
 }
 
 bool Calculator::apply(Operator* op) {
-    int8_t size = op->operands();
+    uint8_t size = op->operands();
     
     std::vector<int32_t> args(size, _pending);
-    int8_t max = size < _operands.size() ? size : _operands.size();
+    uint8_t max = size < _operands.size() ? size : _operands.size();
     for (int i = max - 1; i >= 0; i--) {
         args[i] = _operands.back();
         _operands.pop_back();

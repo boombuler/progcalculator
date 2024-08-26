@@ -29,13 +29,14 @@ const uint8_t Rows[RowCount] = {PRow1, PRow2, PRow3, PRow4, PRow5, PRow6};
 #define ColCount 5
 const uint8_t Cols[ColCount] = {PCol1, PCol2, PCol3, PCol4, PCol5};
 
+
 const char KeyMap[RowCount][ColCount] = {
-    { '0', '0', '0', '0', '0' },  
-    { '0', '0', '0', '0', '0' },  
-    { '0', '0', '0', '0', '0' },  
-    { '0', '0', '0', '0', '0' },  
-    { '0', '0', '0', '0', '0' },  
-    { '0', '0', '0', '0', '0' }
+    { 'd', 'e', 'f', '<', '>' },  
+    { 'a', 'b', 'c', '-', '&' },  
+    { '7', '8', '9', '+', '|' },  
+    { '4', '5', '6', '*', '^' },  
+    { '1', '2', '3', '/', '%' },  
+    { '0', '(', ')', '\b', '\r' }
 };
 
 uint8_t currentKeyStates[RowCount];
@@ -104,6 +105,8 @@ void displayMode() {
     case Calculator::Mode::Hex: text = "HE"; break;    
     default: text = "dc"; break;
     }
+    Serial.print("mode");
+    Serial.println(text.c_str());
     display.setText(text);
     delay(1000);
     display.setText("");
@@ -111,6 +114,7 @@ void displayMode() {
 }
 
 void setup() {
+    Serial.begin(9600);
     for (int i = 0; i < RowCount; i++) {
         pinMode(Rows[i], OUTPUT);
         digitalWrite(Rows[i], LOW);
@@ -142,11 +146,16 @@ void loop() {
 
     char k = readKey();
     if (k) {
+        Serial.print(": '");
+        Serial.print(k);
+        Serial.println("'");
         calc.input(k);
         update = true;
     }
 
     if (update) {
+        Serial.print("> ");
+        Serial.println(calc.display.c_str());
         display.setText(calc.display);
     }
 }
