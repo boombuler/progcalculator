@@ -110,7 +110,22 @@ void displayMode() {
     display.setText(text);
     delay(1000);
     display.setText("");
-    delay(200);
+    delay(50);
+    display.setText(calc.display);
+}
+
+bool updateMode() {
+    auto oldMode = calc.mode();
+    auto newMode = readMode();
+    if (oldMode == newMode)
+        return false;
+    do
+    {
+        oldMode = newMode;
+        delay(debounceDelay);
+        newMode = readMode();
+    } while(newMode != oldMode);
+    return calc.setMode(newMode);
 }
 
 void setup() {
@@ -131,15 +146,15 @@ void setup() {
     memset(currentKeyStates, 0, sizeof(currentKeyStates));
     memset(lastKeyStates, 0, sizeof(lastKeyStates));
 
-    if (readMode() == calc.mode())
-        displayMode(); // if it is something other, the loop code will show the text
+    updateMode();
+    displayMode();
 
     lastDebounceTime = millis();
 }
 
 void loop() {
     bool update = false;
-    if (calc.setMode(readMode())) {
+    if (updateMode()) {
         displayMode();
         update = true;
     }
