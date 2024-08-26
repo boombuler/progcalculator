@@ -24,6 +24,15 @@ void test_initial_state(void) {
   TEST_ASSERT_EQUAL_STRING("0", c.display.c_str());
 }
 
+void test_reset_after_calculation(void) {
+  Calculator c;
+  c.input('4');
+  c.input('\r');
+  TEST_ASSERT_EQUAL_STRING("4", c.display.c_str());
+  c.input('\r');
+  TEST_ASSERT_EQUAL_STRING("0", c.display.c_str());
+}
+
 void test_binary_output(void){
   TEST_ASSERT_EQUAL_STRING("1", calc("1", 2).c_str());
   TEST_ASSERT_EQUAL_STRING("10", calc("2", 2).c_str());
